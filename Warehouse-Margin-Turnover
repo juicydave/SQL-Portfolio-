@@ -1,0 +1,56 @@
+Project Explanation:
+The Inventory and Margin Analysis team at the retail headquarters needs to evaluate the gross margin and inventory turnover across different product departments for a defined period 
+(August 15, 2020 to January 25, 2021). This analysis will provide insights into profitability and inventory management, aiding in better decision-making for inventory purchases and 
+pricing strategies.
+
+
+
+WITH RevenueCost AS (
+    SELECT
+        DepartmentID,
+        SUM(SalePrice) AS TotalRevenue,
+        SUM(CostPrice) AS TotalCost
+    FROM
+        Sales
+    WHERE
+        SaleDate BETWEEN '2020-08-15' AND '2021-01-25'
+    GROUP BY
+        DepartmentID
+),
+AvgInventory AS (
+    SELECT
+        DepartmentID,
+        AVG(StockQuantity) AS AverageInventory
+    FROM
+        Inventory
+    WHERE
+        StockDate BETWEEN '2020-08-15' AND '2021-01-25'
+    GROUP BY
+        DepartmentID
+)
+SELECT
+    rc.DepartmentID,
+    (TotalRevenue - TotalCost) / TotalRevenue AS GrossMargin,
+    TotalRevenue / NULLIF(AverageInventory, 0) AS InventoryTurnover
+FROM
+    RevenueCost rc
+JOIN
+    AvgInventory ai
+ON
+    rc.DepartmentID = ai.DepartmentID;
+
+
+
+1. Define a Common Table Expression (RevenueCost):
+   a. Select DepartmentID, and calculate TotalRevenue and TotalCost from Sales table.
+   b. Filter records between '2020-08-15' and '2021-01-25'.
+   c. Group by DepartmentID.
+
+2. Define another Common Table Expression (AvgInventory):
+   a. Select DepartmentID, calculate AverageInventory from Inventory table.
+   b. Filter records between '2020-08-15' and '2021-01-25'.
+   c. Group by DepartmentID.
+
+3. Final Query:
+   a. Join RevenueCost and AvgInventory on DepartmentID.
+   b. Select DepartmentID, calculate GrossMargin and InventoryTurnover.
