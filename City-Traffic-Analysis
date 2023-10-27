@@ -1,0 +1,31 @@
+-- Determine peak traffic hours for a specific location 
+SELECT 
+    HOUR(Timestamp) AS HourOfDay,
+    AVG(TrafficVolume) AS AverageVolume
+FROM TrafficData
+WHERE Location = 'Downtown'
+GROUP BY HOUR(Timestamp)
+ORDER BY AverageVolume DESC;
+
+
+
+Function Determine Peak Traffic Hours:
+    
+    Input: Traffic Data Table, Desired Location (e.g., 'Downtown')
+
+    1. Initialize an empty list: HourlyTrafficList
+
+    2. For each record in Traffic Data Table:
+        - Check if the Location of the record matches Desired Location
+
+        3. If true:
+            a. Extract the hour from the Timestamp of the record
+            b. Add the TrafficVolume of the record to the corresponding hour in HourlyTrafficList
+
+    4. Calculate the average traffic volume for each hour in HourlyTrafficList
+
+    5. Sort the HourlyTrafficList in descending order based on the average traffic volume
+
+    6. Return the sorted HourlyTrafficList
+
+End Function
