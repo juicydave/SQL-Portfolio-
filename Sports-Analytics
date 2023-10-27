@@ -1,0 +1,31 @@
+-- Find top players based on scoring and assist metrics
+SELECT 
+    p.PlayerName,
+    SUM(g.Points) + SUM(g.Assists) AS PerformanceMetric
+FROM PlayerStats g
+JOIN Players p ON g.PlayerID = p.PlayerID
+GROUP BY p.PlayerName
+ORDER BY PerformanceMetric DESC
+LIMIT 10;
+
+
+
+Function Find Top Players Based On Scoring And Assist Metrics:
+
+    Input: PlayerStats Table, Players Table
+
+    1. Initialize an empty list: TopPlayersList
+
+    2. For each player in Players:
+
+        a. Calculate the total score for that player by summing up:
+            i. Points from PlayerStats
+            ii. Assists from PlayerStats
+
+        b. Add the player's name and the calculated total score to TopPlayersList
+
+    3. Sort the TopPlayersList in descending order based on the total score
+
+    4. Return the top 10 entries from TopPlayersList with Player Name and their Performance Metric
+
+End Function
