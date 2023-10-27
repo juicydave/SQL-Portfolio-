@@ -1,0 +1,46 @@
+-- Recommend movies based on similar user tastes
+WITH UserSimilarity AS (
+    SELECT 
+        r1.UserID, 
+        r2.UserID AS SimilarUserID, 
+        CORR(r1.Rating, r2.Rating) AS Similarity
+    FROM Ratings r1
+    JOIN Ratings r2 ON r1.MovieID = r2.MovieID AND r1.UserID <> r2.UserID
+    GROUP BY r1.UserID, r2.UserID
+)
+SELECT DISTINCT
+    r.MovieID,
+    m.MovieName
+FROM UserSimilarity us
+JOIN Ratings r ON us.SimilarUserID = r.UserID
+JOIN Movies m ON r.MovieID = m.MovieID
+WHERE us.UserID = @MyUserID AND us.Similarity > 0.5
+AND r.MovieID NOT IN (SELECT MovieID FROM Ratings WHERE UserID = @MyUserID);
+
+
+
+Function Recommend Movies Based On Similar User Tastes:
+
+    Input: Ratings Table, Movies Table, Target User ID (@MyUserID)
+
+    1. Create a list called UserSimilarity to store:
+       - UserID
+       - SimilarUserID
+       - Similarity score between users based on their movie ratings
+
+    2. For each unique pair of users in Ratings:
+        
+        a. If the users have rated the same movie:
+            i. Calculate the correlation of their ratings
+            ii. Store the UserID, SimilarUserID, and the correlation score in UserSimilarity list
+
+    3. Initialize an empty list: RecommendedMovies
+
+    4. For each user in UserSimilarity with a similarity score > 0.5 to the Target User:
+        
+        a. Fetch movies rated by that user which the Target User hasn't rated
+        b. Add the movies to the RecommendedMovies list
+
+    5. Return the RecommendedMovies list with unique Movie IDs and their names
+
+End Function
