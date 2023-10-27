@@ -1,0 +1,54 @@
+Project Needs:
+The demand planning team needs to forecast the next quarter's demand for each product in each region. The forecast should be based on the sales trend of the previous year, 
+taking into account the monthly sales growth rate.
+
+WITH MonthlySales AS (
+    SELECT
+        ProductID,
+        RegionID,
+        DATE_PART('month', SalesDate) AS SaleMonth,
+        SUM(SalesQuantity) AS MonthlySales
+    FROM
+        Sales
+    WHERE
+        SalesDate BETWEEN '2022-01-01' AND '2022-12-31'
+    GROUP BY
+        ProductID, RegionID, DATE_PART('month', SalesDate)
+),
+SalesGrowthRate AS (
+    SELECT
+        ProductID,
+        RegionID,
+        AVG(MonthlySales) / LAG(AVG(MonthlySales), 1) OVER (PARTITION BY ProductID, RegionID ORDER BY SaleMonth) - 1 AS MonthlyGrowthRate
+    FROM
+        MonthlySales
+    GROUP BY
+        ProductID, RegionID, SaleMonth
+)
+SELECT
+    ProductID,
+    RegionID,
+    AVG(MonthlySales) * POWER(1 + AVG(MonthlyGrowthRate), 3) AS ForecastedSales
+FROM
+    MonthlySales
+JOIN
+    SalesGrowthRate
+USING
+    (ProductID, RegionID)
+GROUP BY
+    ProductID, RegionID;
+
+
+
+1. Create a Common Table Expression (CTE) named MonthlySales:
+   a. Select ProductID, RegionID, month of SalesDate, and sum of SalesQuantity from Sales table.
+   b. Filter the SalesDate for the year 2022.
+   c. Group by ProductID, RegionID, and month of SalesDate.
+
+2. Create another CTE named SalesGrowthRate:
+   a. Select ProductID, RegionID, and calculate the monthly growth rate from the MonthlySales CTE.
+   b. Group by ProductID, RegionID, and SaleMonth.
+
+3. Select from the MonthlySales and SalesGrowthRate CTEs:
+   a. Select ProductID, RegionID, and calculate the forecasted sales for the next quarter based on the average monthly sales and average monthly growth rate.
+   b. Group by ProductID and RegionID to get the forecasted sales for each product in each region.
