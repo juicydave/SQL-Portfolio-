@@ -1,0 +1,84 @@
+WITH AuthorSales AS (
+    SELECT 
+        a.AuthorName,
+        SUM(s.SalePrice) AS TotalSales
+    FROM Sales s
+    JOIN Books b ON s.BookID = b.BookID
+    JOIN Authors a ON b.AuthorID = a.AuthorID
+    WHERE MONTH(s.SaleDate) = @ReportMonth
+    GROUP BY a.AuthorName
+),
+
+GenreProfitability AS (
+    SELECT 
+        g.GenreName,
+        SUM(s.SalePrice - b.CostPrice) AS Profit
+    FROM Sales s
+    JOIN Books b ON s.BookID = b.BookID
+    JOIN Genres g ON b.GenreID = g.GenreID
+    WHERE MONTH(s.SaleDate) = @ReportMonth
+    GROUP BY g.GenreName
+),
+
+ActiveMembers AS (
+    SELECT 
+        m.MemberName,
+        COUNT(DISTINCT s.BookID) AS BooksBought
+    FROM Sales s
+    JOIN Members m ON s.MemberID = m.MemberID
+    WHERE MONTH(s.SaleDate) = @ReportMonth
+    GROUP BY m.MemberName
+    HAVING COUNT(DISTINCT s.BookID) > 5
+)
+
+SELECT * FROM AuthorSales
+ORDER BY TotalSales DESC
+LIMIT 5;
+
+SELECT * FROM GenreProfitability
+ORDER BY Profit DESC
+LIMIT 5;
+
+SELECT * FROM ActiveMembers;
+
+
+
+Function Generate Monthly Report for Bookstore:
+
+    Input: Books Table, Authors Table, Genres Table, Sales Table, Members Table, ReportMonth
+
+    1. Initialize three empty lists: TopAuthorsList, ProfitableGenresList, and ActiveMembersList
+
+    2. Calculate Top Authors based on sales:
+
+        a. For each sale in Sales for the given ReportMonth:
+            i. Find the related book from the Books table
+            ii. Find the related author from the Authors table
+            iii. Accumulate the sale price to the author's total sales
+
+        b. Add the author and their total sales to the TopAuthorsList
+
+    3. Calculate Most Profitable Genres:
+
+        a. For each sale in Sales for the given ReportMonth:
+            i. Find the related book from the Books table and its cost price
+            ii. Find the related genre from the Genres table
+            iii. Calculate the profit by subtracting the cost price from the sale price
+            iv. Accumulate the profit to the genre's total profit
+
+        b. Add the genre and its total profit to the ProfitableGenresList
+
+    4. Identify Active Members:
+
+        a. For each member in Members:
+            i. Count the number of distinct books they bought in the given ReportMonth from Sales
+            ii. If the count is greater than 5:
+                Add the member and their book count to the ActiveMembersList
+
+    5. Sort the TopAuthorsList in descending order based on total sales and take the top 5
+
+    6. Sort the ProfitableGenresList in descending order based on profit and take the top 5
+
+    7. Return TopAuthorsList, ProfitableGenresList, and ActiveMembersList
+
+End Function
