@@ -1,0 +1,60 @@
+We want to generate a monthly report for the top 10 products that:
+
+    Are either in the 'Electronics' or 'Books' categories.
+    Have an average rating greater than 4.
+    Have at least one review mentioning 'excellent'.
+
+WITH MonthlySales AS (
+    SELECT
+        ProductID,
+        MONTH(OrderDate) AS OrderMonth,
+        SUM(OrderAmount) AS TotalSales
+    FROM Orders
+    GROUP BY ProductID, MONTH(OrderDate)
+)
+
+SELECT 
+    p.ProductName,
+    ms.OrderMonth,
+    COALESCE(ms.TotalSales, 0) AS MonthlySales,
+    AVG(r.Rating) AS AverageRating,
+    COUNT(DISTINCT o.OrderID) AS NumberOfOrders,
+    CASE
+        WHEN AVG(r.Rating) > 4.5 THEN 'Highly Rated'
+        ELSE 'Well Rated'
+    END AS RatingLabel
+FROM Products p
+LEFT JOIN Orders o ON p.ProductID = o.ProductID
+LEFT JOIN MonthlySales ms ON p.ProductID = ms.ProductID
+INNER JOIN Reviews r ON p.ProductID = r.ProductID
+WHERE p.Category IN ('Electronics', 'Books')
+AND EXISTS (SELECT 1 FROM Reviews WHERE ProductID = p.ProductID AND Comment LIKE '%excellent%')
+GROUP BY p.ProductName, ms.OrderMonth, ms.TotalSales
+HAVING AVG(r.Rating) > 4
+ORDER BY MonthlySales DESC, AverageRating DESC
+LIMIT 10;
+
+
+
+Define a data set "MonthlySales" that:
+    For each product and for each month:
+        Calculate the total sales from the Orders table
+
+For the main query:
+    Start with the Products table
+    If the product is in the 'Electronics' or 'Books' category:
+        Join the product with its orders using the ProductID
+        Join the product with the "MonthlySales" data set using the ProductID
+        Join the product with its reviews using the ProductID
+        If the product has a review that contains the word 'excellent':
+            Calculate:
+                The name of the product
+                The month of the order
+                The total monthly sales (default to 0 if no sales)
+                The average rating from the Reviews table
+                The total number of orders for the product
+                A label 'Highly Rated' if average rating > 4.5, else 'Well Rated'
+            Group the results by the product name, order month, and monthly sales
+            Only include products with an average rating greater than 4
+            Sort the results by monthly sales in descending order and then by average rating in descending order
+            Return the top 10 products
