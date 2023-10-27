@@ -1,0 +1,37 @@
+-- Find items frequently bought together
+SELECT 
+    i1.ItemName AS Item1,
+    i2.ItemName AS Item2,
+    COUNT(*) AS Frequency
+FROM CartItems c1
+JOIN CartItems c2 ON c1.CartID = c2.CartID AND c1.ItemID <> c2.ItemID
+JOIN Items i1 ON c1.ItemID = i1.ItemID
+JOIN Items i2 ON c2.ItemID = i2.ItemID
+GROUP BY i1.ItemName, i2.ItemName
+ORDER BY Frequency DESC
+LIMIT 10;
+
+
+
+Function Find Frequently Bought Together Items:
+
+    Input: CartItems Table, Items Table
+
+    1. Initialize an empty list: ItemPairsList
+
+    2. For each cart in CartItems:
+        
+        a. For each unique item pair in the cart:
+            - Check if the two items are not the same
+            - If true:
+                i. Add the pair to the ItemPairsList or increment its count if already present
+
+    3. Join the ItemPairsList with Items Table twice to get the names for both items in the pair
+
+    4. Group the ItemPairsList by item pair names and count the occurrences of each pair
+
+    5. Sort the ItemPairsList in descending order based on the count
+
+    6. Return the top 10 results from the sorted ItemPairsList
+
+End Function
